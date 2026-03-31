@@ -50,6 +50,28 @@ func CreateTask(c *fiber.Ctx) error {
 	return c.JSON(task)
 }
 
+func UpdateTask(c *fiber.Ctx) error {
+    id, _ := strconv.Atoi(c.Params("id"))
+
+    // Cek apakah task ada
+    task := store.GetTaskByID(id)
+    if task == nil {
+        return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+            "error": "task not found",
+        })
+    }
+
+    var updated models.Task
+    if err := c.BodyParser(&updated); err != nil {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "error": "invalid request body",
+        })
+    }
+
+    result := store.UpdateTask(id, updated)
+    return c.JSON(result)
+}
+
 func DeleteTask(c *fiber.Ctx) error {
 	idParam := c.Params("id")
 

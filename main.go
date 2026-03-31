@@ -13,6 +13,7 @@ func main() {
 	app.Get("/tasks/:id", handlers.GetTask)
 	app.Post("/tasks", handlers.CreateTask)
 	app.Delete("/tasks/:id", handlers.DeleteTask)
+	app.Patch("/tasks/:id", handlers.UpdateTask) 
 
 	app.Listen(":3000")
 }
