@@ -1,6 +1,12 @@
 # Stability Task Manager API
 
-Submission technical test untuk Fullstack Developer Intern di  PT. Tirtamas Coldstorindo Logistik
+Submission technical test untuk Fullstack Developer Intern di PT. Tirtamas Coldstorindo Logistik
+
+## Tentang Saya
+
+- **Nama:** Imam Nur Hadi
+- **GitHub:** [ImamNurHadi015](https://github.com/ImamNurHadi015)
+- https://imamnurhadi-portofolio.vercel.app/
 
 ## Tech Stack
 
@@ -15,6 +21,9 @@ Submission technical test untuk Fullstack Developer Intern di  PT. Tirtamas Cold
 git clone https://github.com/ImamNurHadi015/stability-technical-test.git
 cd stability-technical-test
 
+# Install dependencies
+go mod tidy
+
 # Jalankan aplikasi
 go run main.go
 ```
@@ -28,6 +37,7 @@ Server akan berjalan di `http://127.0.0.1:3000`
 | GET | `/tasks` | Mengambil semua task |
 | GET | `/tasks/:id` | Mengambil task berdasarkan ID |
 | POST | `/tasks` | Membuat task baru |
+| PATCH | `/tasks/:id` | Memperbarui task berdasarkan ID |
 | DELETE | `/tasks/:id` | Menghapus task berdasarkan ID |
 
 ---
@@ -168,5 +178,65 @@ func DeleteTask(id int) {
             return
         }
     }
+}
+```
+
+### 4. Menambahkan Endpoint Baru `PATCH /tasks/:id`
+**Kategori:** Add a new endpoint
+
+Menambahkan endpoint baru untuk memperbarui data task berdasarkan ID. Endpoint ini mendukung pembaruan `title` dan status `done`.
+
+```go
+// Store — UpdateTask
+func UpdateTask(id int, updated models.Task) *models.Task {
+    for i := range Tasks {
+        if Tasks[i].ID == id {
+            if updated.Title != "" {
+                Tasks[i].Title = updated.Title
+            }
+            Tasks[i].Done = updated.Done
+            return &Tasks[i]
+        }
+    }
+    return nil
+}
+
+// Handler — UpdateTask
+func UpdateTask(c *fiber.Ctx) error {
+    id, _ := strconv.Atoi(c.Params("id"))
+
+    task := store.GetTaskByID(id)
+    if task == nil {
+        return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+            "error": "task not found",
+        })
+    }
+
+    var updated models.Task
+    if err := c.BodyParser(&updated); err != nil {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "error": "invalid request body",
+        })
+    }
+
+    result := store.UpdateTask(id, updated)
+    return c.JSON(result)
+}
+```
+
+Contoh request:
+```json
+{
+    "title": "Learn Go - Updated",
+    "done": true
+}
+```
+
+Contoh response:
+```json
+{
+    "id": 1,
+    "title": "Learn Go - Updated",
+    "done": true
 }
 ```
