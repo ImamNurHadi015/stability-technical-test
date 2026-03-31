@@ -22,7 +22,7 @@ func GetTask(c *fiber.Ctx) error {
 	task := store.GetTaskByID(id)
 
 	if task == nil {
-		return c.Status(200).JSON(fiber.Map{
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 			"error": "task not found",
 		})
 	}
@@ -37,7 +37,15 @@ func CreateTask(c *fiber.Ctx) error {
 		return err
 	}
 
-	store.AddTask(task)
+	   // Validasi title agar tidak boleh kosong (bisa dengan 400 status code)
+	   if task.Title == "" {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+            "error": "title is required",
+        })
+    }
+
+	//Menambahkan pointer untuk mengikuti perubahan
+	store.AddTask(&task)
 
 	return c.JSON(task)
 }
@@ -47,9 +55,16 @@ func DeleteTask(c *fiber.Ctx) error {
 
 	id, _ := strconv.Atoi(idParam)
 
+	//Memeriksa terlebih dulu apakah task ada
+    task := store.GetTaskByID(id)
+    if task == nil {
+        return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+            "error": "task not found",
+        })
+    }
 	store.DeleteTask(id)
 
-	return c.JSON(fiber.Map{
-		"message": "deleted",
-	})
+	return c.Status(200).JSON(fiber.Map{
+        "message": "deleted",
+    })
 }
